@@ -1,13 +1,14 @@
 package moe.bay.clipboard.api;
 
 import moe.bay.clipboard.ClipBoard;
-import org.javacord.api.entity.channel.ServerTextChannel;
 import org.javacord.api.entity.server.Server;
 import xyz.derkades.derkutils.caching.Cache;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Bailey Riezebos
@@ -25,9 +26,9 @@ public class ClipServer {
         this.server = server;
     }
 
-    private PreparedStatement prepare(final String query, final Object... params) throws SQLException {
-        return this.clip.getDatabase().prepareStatement(query, params);
-    }
+//    private PreparedStatement prepare(final String query, final Object... params) throws SQLException {
+//        return this.clip.getDatabase().prepareStatement(query, params);
+//    }
 
     public ClipBoard getClip() {
         return clip;
@@ -42,38 +43,42 @@ public class ClipServer {
     }
 
     public String getPrefix() throws SQLException {
-        final Object cache = Cache.getCachedObject("server_prefix" + this.server.getId());
+        final Object cache = Cache.getCachedObject("server_prefix" + server.getId());
 
         if (cache != null) {
             return (String) cache;
         }
 
-        try (final PreparedStatement s = prepare("SELECT `prefix` FROM `server_command_prefixes` WHERE `server_id`=?", this.server.getId())) {
+        try (final PreparedStatement s = clip.getDatabase().prepareStatement("SELECT `prefix` FROM `server_command_prefixes` WHERE `server_id`=?", server.getId())) {
             final ResultSet result = s.executeQuery();
             String prefix;
             if (!result.next()) {
-                prefix = this.DEFAULT_PREFIX;
+                prefix = DEFAULT_PREFIX;
             } else {
 
                 prefix = result.getString(1);
             }
 
-            Cache.addCachedObject("server_prefix" + this.server.getId(), prefix);
+            Cache.addCachedObject("server_prefix" + server.getId(), prefix);
             return prefix;
         }
     }
 
     public void setPrefix(final String prefix) throws SQLException {
-        Cache.addCachedObject("server_prefix" + this.server.getId(), prefix);
+        Cache.addCachedObject("server_prefix" + server.getId(), prefix);
 
-        try (final PreparedStatement s = prepare(
+        try (final PreparedStatement s = clip.getDatabase().prepareStatement(
                 "INSERT INTO `server_command_prefixes` (`server_id`, `prefix`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `prefix`=?",
-                this.server.getId(), prefix, prefix)) {
+                server.getId(), prefix, prefix)) {
             s.execute();
         }
     }
 
-    public void addLogChannel(final ClipLogChannel logChannel) {
-
+    public List<ClipChannel> getClipChannels() {
+        return server.getTextChannels().stream().map((s) -> new ClipChannel(this, s)).collect(Collectors.toList());
     }
+
+//    public List<ClipChannel> getLogChannels() {
+//        getClipChannels()
+//    }
 }
