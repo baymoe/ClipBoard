@@ -15,27 +15,42 @@ import java.util.Properties;
  * This is the main class that will run the startup configuration and load properties.
  */
 public class App {
-    public static void main(String[] args) throws IOException, SQLException {
 
-        final File propFile = new File("clipboard.conf");
+    /**
+     * @param args
+     * if argument provided, <code>args[0]</code> is used as the filename for properties. <br>
+     * if left blank, environment variables will be used in stead.
+     * @throws IOException
+     */
 
-        if (!propFile.exists()) {
-            final String contents =
-                    "discord-token-\n"
-                            + "db-host=\n"
-                            + "db-port=\n"
-                            + "db-user=\n"
-                            + "db-pass=\n"
-                            + "debug=true";
-            FileUtils.write(propFile, contents, "UTF-8");
-            System.out.println("Please set up the configuration file.");
-            return;
-        }
+    public static void main(String[] args) throws IOException {
 
         final Properties properties = new Properties();
 
-        try (InputStream stream = new FileInputStream(propFile)) {
-            properties.load(stream);
+        if (args.length > 0) {
+            final File propFile = new File(args[0]);
+            if (!propFile.exists()) {
+                final String contents =
+                        "discord-token=\n"
+                                + "db-host=\n"
+                                + "db-port=\n"
+                                + "db-user=\n"
+                                + "db-pass=\n"
+                                + "debug=true";
+                FileUtils.write(propFile, contents, "UTF-8");
+                System.out.println("Please set up the configuration file.");
+                return;
+            }
+            try (InputStream stream = new FileInputStream(propFile)) {
+                properties.load(stream);
+            }
+        } else {
+            properties.setProperty("discord-token", System.getenv("CLIPBOARD_TOKEN"));
+            properties.setProperty("db-host", System.getenv("CLIPBOARD_DB_HOST"));
+            properties.setProperty("db-port", System.getenv("CLIPBOARD_DB_PORT"));
+            properties.setProperty("db-user", System.getenv("CLIPBOARD_DB_USER"));
+            properties.setProperty("db-pass", System.getenv("CLIPBOARD_DB_PASS"));
+            properties.setProperty("debug", System.getenv("CLIPBOARD_DEBUG"));
         }
 
         try {
@@ -43,7 +58,6 @@ public class App {
         } catch (SQLException e) {
             System.out.println("Could not connect to database, stopping ClipBoard.");
             e.printStackTrace();
-            return;
         }
     }
 }
