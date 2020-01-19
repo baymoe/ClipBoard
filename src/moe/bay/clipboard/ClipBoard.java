@@ -12,6 +12,11 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+/**
+ * @author Bailey Riezebos
+ * @version 1.0
+ * This is a ClipBoard object that acts as the instance of the Discord Bot.
+ */
 public class ClipBoard {
 
     private final Logger logger;

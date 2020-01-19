@@ -7,6 +7,11 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * @author Bailey Riezebos
+ * @version 1.0
+ * This is a private logger that keeps track of the bot status.
+ */
 public class Logger {
 
     private final File infoFile;

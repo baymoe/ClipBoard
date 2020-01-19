@@ -9,6 +9,11 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Properties;
 
+/**
+ * @author Bailey Riezebos
+ * @version 1.0
+ * This is the main class that will run the startup configuration and load properties.
+ */
 public class App {
     public static void main(String[] args) throws IOException, SQLException {
 

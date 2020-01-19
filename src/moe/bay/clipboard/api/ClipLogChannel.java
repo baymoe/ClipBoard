@@ -5,6 +5,10 @@ import org.javacord.api.entity.channel.ServerTextChannel;
 
 import java.util.List;
 
+/**
+ * @author Bailey Riezebos
+ * @version 1.0
+ */
 public class ClipLogChannel {
 
     private final ClipBoard clip;

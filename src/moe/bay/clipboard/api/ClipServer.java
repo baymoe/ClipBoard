@@ -9,6 +9,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+/**
+ * @author Bailey Riezebos
+ * @version 1.0
+ */
 public class ClipServer {
 
     private final String DEFAULT_PREFIX = "cb ";
