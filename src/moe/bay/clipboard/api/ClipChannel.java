@@ -33,11 +33,11 @@ public class ClipChannel {
 
     public List<LogType> getLoggers() throws SQLException {
         try (final PreparedStatement s = server.getClip().getDatabase().prepareStatement(
-                "SELECT `log_type` FROM `server_log_channels` WHERE `server_id`=? AND `channel_id`=?", server.getId(), getId())) {
+                "SELECT `log_type` FROM `log_channels` WHERE `server_id`=? AND `channel_id`=?", server.getId(), getId())) {
             ResultSet r = s.executeQuery();
             List<LogType> logTypes = new ArrayList<>();
             while (r.next()) {
-                logTypes.add(LogType.getLogTypeFromId(r.getInt(0)));
+                logTypes.add(LogType.getLogTypeFromId(r.getInt(1)));
             }
             return logTypes;
         }
@@ -45,16 +45,16 @@ public class ClipChannel {
 
     public void addLogger(final LogType logType) throws SQLException {
         try (final PreparedStatement s = server.getClip().getDatabase().prepareStatement(
-                "INSERT INTO `server_log_channels` (`server_id`, `channel_id`, `log_type`) VALUES (?, ?, ?)",
-                server.getId(), getId(), logType)) {
+                "INSERT INTO `log_channels` (`server_id`, `channel_id`, `log_type`) VALUES (?, ?, ?)",
+                server.getId(), getId(), logType.getId())) {
             s.execute();
         }
     }
 
     public void removeLogger(final LogType logType) throws SQLException {
         try (final PreparedStatement s = server.getClip().getDatabase().prepareStatement(
-                "DELETE FROM `server_log_channels` WHERE `server_id`=? `channel_id`=? `log_type`=?",
-                server.getId(), getId(), logType)) {
+                "DELETE FROM `log_channels` WHERE `server_id`=? AND `channel_id`=? AND `log_type`=?",
+                server.getId(), getId(), logType.getId())) {
             s.execute();
         }
     }
