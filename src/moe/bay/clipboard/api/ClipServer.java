@@ -26,10 +26,6 @@ public class ClipServer {
         this.server = server;
     }
 
-//    private PreparedStatement prepare(final String query, final Object... params) throws SQLException {
-//        return this.clip.getDatabase().prepareStatement(query, params);
-//    }
-
     public ClipBoard getClip() {
         return clip;
     }
