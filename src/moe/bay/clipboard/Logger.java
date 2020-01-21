@@ -1,10 +1,14 @@
 package moe.bay.clipboard;
 
+import moe.bay.clipboard.api.ClipChannel;
+import moe.bay.clipboard.api.ClipServer;
 import org.apache.commons.io.FileUtils;
+import org.javacord.api.entity.message.embed.EmbedBuilder;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -24,10 +28,37 @@ public class Logger {
         this.errorFile = new File("clipboard.error.log");
     }
 
-    public void severe(final String message, final Object... formatObjects) {
-        final String text = format("SEVERE", message, formatObjects);
-        System.out.println(text);
-        append(this.errorFile, text);
+    public void exception(final ClipBoard clip, final Exception e) {
+
+        StringBuilder stackTrace = new StringBuilder();
+        for (StackTraceElement s : e.getStackTrace()) {
+            if (s.getClassName().contains("clipboard")) {
+                stackTrace.append("in class ").append(s.getClassName()).append("\n");
+                stackTrace.append("in method ").append(s.getMethodName()).append("\n");
+                stackTrace.append("on line ").append(s.getLineNumber()).append("\n");
+            }
+        }
+
+        clip.getErrorLogChannel().getChannel().sendMessage(new EmbedBuilder()
+                .setAuthor(clip.getDiscord().getYourself())
+                .setDescription("`" + e.getMessage() + "`")
+                .addField("StackTrace",
+                        "```" + (stackTrace.length() > 750
+                                ? stackTrace.substring(0, 750)
+                                : stackTrace.toString())
+                                + "...``` Read the console for the full StackTrace."));
+
+        e.printStackTrace();
+    }
+
+    public void exception(final ClipBoard clip, final Exception e, final ClipServer server) {
+        clip.getErrorLogChannel().getChannel().sendMessage(new EmbedBuilder()
+                .setAuthor(server.getName(), "",
+                        server.getServer().getIcon().isPresent()
+                                ? server.getServer().getIcon().get().getUrl().toString()
+                                : clip.getHome().getServer().getIcon().get().getUrl().toString())
+                .setDescription(e.getMessage())
+                .addField("StackTrace", "```" + Arrays.toString(e.getStackTrace()) + "```"));
     }
 
     public void warning(final String message, final Object... formatObjects) {
@@ -60,4 +91,5 @@ public class Logger {
             e.printStackTrace();
         }
     }
+
 }
