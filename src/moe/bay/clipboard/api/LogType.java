@@ -45,4 +45,13 @@ public enum LogType {
         }
         return null;
     }
+
+    public static boolean exists(String name) {
+        try {
+            LogType.valueOf(name);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
 }
