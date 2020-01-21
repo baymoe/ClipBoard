@@ -9,14 +9,9 @@ import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.activity.ActivityType;
 import org.javacord.api.util.logging.ExceptionLogger;
 
-import java.net.http.WebSocket;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.ExecutionException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -86,9 +81,11 @@ public class ClipBoard {
         api.addListener(new LogCommand(this));
     }
 
+    /**
+     * @author Derkades
+     * @return Formatted timestamp of when the method was called
+     */
     public static String getCurrentTimeStamp() {
-        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//dd/MM/yyyy
-        Date now = new Date();
-        return sdfDate.format(now);
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
     }
 }

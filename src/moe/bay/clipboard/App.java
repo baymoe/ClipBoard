@@ -7,7 +7,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.Calendar;
 import java.util.Properties;
+import java.util.TimeZone;
 
 /**
  * @author Bailey Riezebos
@@ -24,6 +26,8 @@ public class App {
      */
 
     public static void main(String[] args) throws IOException {
+
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
 
         final Properties properties = new Properties();
 
