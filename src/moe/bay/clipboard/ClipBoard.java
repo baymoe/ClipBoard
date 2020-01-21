@@ -1,15 +1,20 @@
 package moe.bay.clipboard;
 
+import moe.bay.clipboard.api.ClipChannel;
 import moe.bay.clipboard.api.ClipServer;
+import moe.bay.clipboard.commands.LogCommand;
+import moe.bay.clipboard.logger.ClipLoggerMessage;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.activity.ActivityType;
 import org.javacord.api.util.logging.ExceptionLogger;
 
+import java.net.http.WebSocket;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -29,7 +34,7 @@ public class ClipBoard {
         this.database = new Database(
                 properties.getProperty("db-host"),
                 Integer.parseInt(properties.getProperty("db-port")),
-                properties.getProperty("db-db"),
+                properties.getProperty("db-name"),
                 properties.getProperty("db-user"),
                 properties.getProperty("db-pass"),
                 Boolean.valueOf(properties.getProperty("debug")));
@@ -59,6 +64,14 @@ public class ClipBoard {
         return this.discord.getServers().stream().map((s) -> new ClipServer(this, s)).collect(Collectors.toList());
     }
 
+    public ClipServer getHome() {
+        return new ClipServer(this, this.getDiscord().getServerById(668450061625327633L).get());
+    }
+
+    public ClipChannel getErrorLogChannel() {
+        return new ClipChannel(getHome(), getHome().getServer().getTextChannelById(668528956726706217L).get());
+    }
+
     private void onShardLogin(final DiscordApi api) {
         this.discord = api;
 
@@ -67,5 +80,7 @@ public class ClipBoard {
 
         api.updateActivity(ActivityType.LISTENING, "cb help");
 
+        api.addListener(new ClipLoggerMessage(this));
+        api.addListener(new LogCommand(this));
     }
 }
