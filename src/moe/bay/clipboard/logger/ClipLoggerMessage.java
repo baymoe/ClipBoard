@@ -1,11 +1,14 @@
 package moe.bay.clipboard.logger;
 
 import moe.bay.clipboard.ClipBoard;
+import moe.bay.clipboard.api.ClipChannel;
 import moe.bay.clipboard.api.ClipServer;
 import moe.bay.clipboard.api.LogType;
 import org.javacord.api.entity.auditlog.AuditLogActionType;
 import org.javacord.api.entity.auditlog.AuditLogEntry;
+import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.MessageAuthor;
+import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.user.User;import org.javacord.api.event.message.CachedMessagePinEvent;
 import org.javacord.api.event.message.CachedMessageUnpinEvent;
@@ -18,8 +21,10 @@ import org.javacord.api.listener.message.MessageEditListener;
 
 import java.awt.*;
 import java.sql.SQLException;
+import java.time.ZoneId;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Stream;
 
 public class ClipLoggerMessage implements MessageEditListener, MessageDeleteListener, CachedMessagePinListener, CachedMessageUnpinListener {
 
@@ -42,26 +47,23 @@ public class ClipLoggerMessage implements MessageEditListener, MessageDeleteList
         if (!event.getMessageAuthor().get().isRegularUser()) {
             return;
         }
-        event.getServer().ifPresent(server -> {
-            ClipServer clipServer = new ClipServer(clip, server);
-            clipServer.getClipChannels().stream().filter(channel -> {
-                try {
-                    return channel.getLoggers().contains(LogType.MESSAGE);
-                } catch (SQLException e) {
-                    clip.getLogger().exception(clip, e, clipServer);
-                    return false;
-                }
-            }).forEach(clipChannel -> {
-                User author;
-                if (event.getMessageAuthor().isPresent()
-                        && event.getMessageAuthor().get().isRegularUser()
-                        && event.getMessageAuthor().get().asUser().isPresent()) {
-                        author = event.getMessageAuthor().get().asUser().get();
-                    } else {
-                    author = clip.getDiscord().getYourself();
-                }
 
+        event.getServer().ifPresent(dServer -> {
+            ClipServer server = new ClipServer(clip, dServer);
 
+            getMessagLogChannels(server).forEach(channel -> {
+
+                // if MessageAuthor isn't available, default to getYourSelf
+                User author = clip.getDiscord().getYourself();
+
+                // set author as the MessageAuthor
+                if (event.getMessageAuthor().isPresent()) {
+                    if (event.getMessageAuthor().get().isRegularUser()) {
+                        if (event.getMessageAuthor().get().asUser().isPresent()) {
+                            author = event.getMessageAuthor().get().asUser().get();
+                        }
+                    }
+                }
 
                 EmbedBuilder logMessage = getLogMessage(author, ":wastebasket: A message was deleted.", "");
                 logMessage.addInlineField("Author", author.getMentionTag());
@@ -73,15 +75,16 @@ public class ClipLoggerMessage implements MessageEditListener, MessageDeleteList
                     }
                 });
                 try {
-                    AuditLogEntry lastMessageDeleteAudit = server.getAuditLog(1, AuditLogActionType.MESSAGE_DELETE).get().getEntries().get(0);
+                    AuditLogEntry lastMessageDeleteAudit = dServer.getAuditLog(1, AuditLogActionType.MESSAGE_DELETE).get().getEntries().get(0);
 
                     if (event.getMessageId() == (lastMessageDeleteAudit.getTarget().get().getId())) {
                         logMessage.addField("Executor", lastMessageDeleteAudit.getUser().get().getMentionTag());
                     }
                 } catch (InterruptedException | ExecutionException e) {
-                    clip.getLogger().exception(clip, e, clipServer);
+                    clip.getLogger().exception(clip, e, server);
                 }
-                clipChannel.getChannel().sendMessage(logMessage);
+                logMessage.addField("Timestamp", ClipBoard.getCurrentTimeStamp());
+                channel.getChannel().sendMessage(logMessage);
             });
         });
     }
@@ -93,7 +96,43 @@ public class ClipLoggerMessage implements MessageEditListener, MessageDeleteList
      */
     @Override
     public void onMessageEdit(MessageEditEvent event) {
-        Optional<MessageAuthor> author = event.getMessageAuthor();
+
+        if (event.getMessageAuthor().isEmpty()) {
+            return;
+        }
+        if (!event.getMessageAuthor().get().isRegularUser()) {
+            return;
+        }
+
+        event.getServer().ifPresent(dServer -> {
+            ClipServer server = new ClipServer(clip, dServer);
+            getMessagLogChannels(server).forEach(channel -> {
+
+                // if MessageAuthor isn't available, default to getYourSelf
+                User author = clip.getDiscord().getYourself();
+
+                // set author as the MessageAuthor
+                if (event.getMessageAuthor().isPresent()) {
+                    if (event.getMessageAuthor().get().isRegularUser()) {
+                        if (event.getMessageAuthor().get().asUser().isPresent()) {
+                            author = event.getMessageAuthor().get().asUser().get();
+                        }
+                    }
+                }
+                EmbedBuilder logMessage = getLogMessage(author, ":pencil: A message was edited.", "");
+                event.getServerTextChannel().ifPresent(serverTextChannel -> logMessage.addInlineField("Channel", serverTextChannel.getMentionTag()));
+                event.getOldContent().ifPresent(oldContent -> logMessage.addField("From", oldContent));
+                logMessage.addField("To", event.getNewContent());
+
+                event.getMessageAttachments().ifPresent(attachments -> logMessage.addInlineField("Attachments", String.valueOf(attachments.size())));
+                logMessage.addField("Timestamp", ClipBoard.getCurrentTimeStamp());
+
+                channel.getChannel().sendMessage(logMessage);
+
+            });
+
+        });
+
     }
 
     /**
@@ -123,5 +162,16 @@ public class ClipLoggerMessage implements MessageEditListener, MessageDeleteList
                 .setUrl(url)
                 .setColor(new Color(255, 189, 127))
                 .setFooter("Powered by ClipBoard", clip.getDiscord().getYourself().getAvatar());
+    }
+
+    private Stream<ClipChannel> getMessagLogChannels(ClipServer server) {
+        return server.getClipChannels().stream().filter(channel -> {
+            try {
+                return channel.getLoggers().contains(LogType.MESSAGE);
+            } catch (SQLException e) {
+                clip.getLogger().exception(clip, e, server);
+                return false;
+            }
+        });
     }
 }
