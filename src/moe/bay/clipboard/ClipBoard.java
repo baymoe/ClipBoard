@@ -11,7 +11,9 @@ import org.javacord.api.util.logging.ExceptionLogger;
 
 import java.net.http.WebSocket;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
@@ -29,7 +31,7 @@ public class ClipBoard {
     private DiscordApi discord;
 
     ClipBoard(final Properties properties) throws SQLException {
-        this.logger = new Logger(Boolean.valueOf(properties.getProperty("debug")));
+        this.logger = new Logger(Boolean.parseBoolean(properties.getProperty("debug")));
 
         this.database = new Database(
                 properties.getProperty("db-host"),
@@ -37,7 +39,7 @@ public class ClipBoard {
                 properties.getProperty("db-name"),
                 properties.getProperty("db-user"),
                 properties.getProperty("db-pass"),
-                Boolean.valueOf(properties.getProperty("debug")));
+                Boolean.parseBoolean(properties.getProperty("debug")));
 
         new DiscordApiBuilder()
                 .setToken(properties.getProperty("discord-token"))
@@ -82,5 +84,11 @@ public class ClipBoard {
 
         api.addListener(new ClipLoggerMessage(this));
         api.addListener(new LogCommand(this));
+    }
+
+    public static String getCurrentTimeStamp() {
+        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//dd/MM/yyyy
+        Date now = new Date();
+        return sdfDate.format(now);
     }
 }
