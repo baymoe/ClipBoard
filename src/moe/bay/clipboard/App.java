@@ -34,6 +34,7 @@ public class App {
                         "discord-token=\n"
                                 + "db-host=\n"
                                 + "db-port=\n"
+                                + "db-name=\n"
                                 + "db-user=\n"
                                 + "db-pass=\n"
                                 + "debug=true";
@@ -48,6 +49,7 @@ public class App {
             properties.setProperty("discord-token", System.getenv("CLIPBOARD_TOKEN"));
             properties.setProperty("db-host", System.getenv("CLIPBOARD_DB_HOST"));
             properties.setProperty("db-port", System.getenv("CLIPBOARD_DB_PORT"));
+            properties.setProperty("db-name", System.getenv("CLIPBOARD_DB_NAME"));
             properties.setProperty("db-user", System.getenv("CLIPBOARD_DB_USER"));
             properties.setProperty("db-pass", System.getenv("CLIPBOARD_DB_PASS"));
             properties.setProperty("debug", System.getenv("CLIPBOARD_DEBUG"));
