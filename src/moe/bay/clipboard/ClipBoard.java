@@ -11,6 +11,7 @@ import org.javacord.api.util.logging.ExceptionLogger;
 
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,26 +46,39 @@ public class ClipBoard {
                 );
     }
 
-    public Logger getLogger() {
-        return this.logger;
-    }
+    /**
+     * @return Application-level logger (not ClipLoggers)
+     */
+    public Logger getLogger() { return this.logger; }
 
-    public Database getDatabase() {
-        return this.database;
-    }
+    /**
+     * @return Database used to store log channels and configurations
+     */
+    public Database getDatabase() { return this.database; }
 
-    public DiscordApi getDiscord() {
-        return this.discord;
-    }
+    /**
+     * @return ClipBoard's DiscordApi
+     */
+    public DiscordApi getDiscord() { return this.discord; }
 
+
+    /**
+     * @return a list of all ClipServers that ClipBoard is in
+     */
     public List<ClipServer> getServers() {
         return this.discord.getServers().stream().map((s) -> new ClipServer(this, s)).collect(Collectors.toList());
     }
 
+    /**
+     * @return The ClipServer used as a "Home" or support server for the bot
+     */
     public ClipServer getHome() {
         return new ClipServer(this, this.getDiscord().getServerById(668450061625327633L).get());
     }
 
+    /**
+     * @return The ClipChannel used to log errors that occur while using the bot
+     */
     public ClipChannel getErrorLogChannel() {
         return new ClipChannel(getHome(), getHome().getServer().getTextChannelById(668528956726706217L).get());
     }
@@ -82,10 +96,9 @@ public class ClipBoard {
     }
 
     /**
-     * @author Derkades
      * @return Formatted timestamp of when the method was called
      */
     public static String getCurrentTimeStamp() {
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss UTC").format(Instant.now());
     }
 }
