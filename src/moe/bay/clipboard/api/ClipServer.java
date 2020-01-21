@@ -38,6 +38,10 @@ public class ClipServer {
         return server;
     }
 
+    public String getName() {
+        return server.getName();
+    }
+
     public long getId() {
         return server.getId();
     }
@@ -76,6 +80,22 @@ public class ClipServer {
 
     public List<ClipChannel> getClipChannels() {
         return server.getTextChannels().stream().map((s) -> new ClipChannel(this, s)).collect(Collectors.toList());
+    }
+
+    public void addLogger(final LogType logType, ClipChannel channel) throws SQLException {
+        try (final PreparedStatement s = getClip().getDatabase().prepareStatement(
+                "INSERT INTO `log_channels` (`server_id`, `channel_id`, `log_type`) VALUES (?, ?, ?)",
+                server.getId(), channel.getId(), logType.getId())) {
+            s.execute();
+        }
+    }
+
+    public void removeLogger(final LogType logType, ClipChannel channel) throws SQLException {
+        try (final PreparedStatement s = getClip().getDatabase().prepareStatement(
+                "DELETE FROM `log_channels` WHERE `server_id`=? AND `channel_id`=? AND `log_type`=?",
+                server.getId(), getId(), logType.getId())) {
+            s.execute();
+        }
     }
 
 //    public List<ClipChannel> getLogChannels() {
