@@ -26,7 +26,11 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
-public class ClipLoggerMessage implements MessageEditListener, MessageDeleteListener, CachedMessagePinListener, CachedMessageUnpinListener {
+public class ClipLoggerMessage implements
+        MessageEditListener,
+        MessageDeleteListener,
+        CachedMessagePinListener,
+        CachedMessageUnpinListener {
 
     private final ClipBoard clip;
 
@@ -142,7 +146,29 @@ public class ClipLoggerMessage implements MessageEditListener, MessageDeleteList
      */
     @Override
     public void onCachedMessagePin(CachedMessagePinEvent event) {
-        MessageAuthor author = event.getMessageAuthor();
+
+        event.getServer().ifPresent(dServer -> {
+            ClipServer server = new ClipServer(clip, dServer);
+            getMessagLogChannels(server).forEach(channel -> {
+
+               User author = clip.getDiscord().getYourself();
+               if (event.getMessageAuthor().asUser().isPresent()) {
+                   author = event.getMessageAuthor().asUser().get();
+               }
+
+                EmbedBuilder logMessage = getLogMessage(author, ":tack: A message was pinned.", "");
+                event.getServerTextChannel().ifPresent(serverTextChannel -> logMessage.addInlineField("Channel", serverTextChannel.getMentionTag()));
+                logMessage.addField("Content", event.getMessageContent());
+                if (event.getMessageAttachments().size() > 0) {
+                    logMessage.addInlineField("Attachments", String.valueOf(event.getMessageAttachments().size()));
+                }
+                logMessage.addField("Timestamp", ClipBoard.getCurrentTimeStamp());
+
+                channel.getChannel().sendMessage(logMessage);
+
+
+            });
+        });
     }
 
     /**
@@ -152,7 +178,29 @@ public class ClipLoggerMessage implements MessageEditListener, MessageDeleteList
      */
     @Override
     public void onCachedMessageUnpin(CachedMessageUnpinEvent event) {
-        MessageAuthor author = event.getMessageAuthor();
+
+        event.getServer().ifPresent(dServer -> {
+            ClipServer server = new ClipServer(clip, dServer);
+            getMessagLogChannels(server).forEach(channel -> {
+
+                User author = clip.getDiscord().getYourself();
+                if (event.getMessageAuthor().asUser().isPresent()) {
+                    author = event.getMessageAuthor().asUser().get();
+                }
+
+                EmbedBuilder logMessage = getLogMessage(author, ":tack: A message was unpinned.", "");
+                event.getServerTextChannel().ifPresent(serverTextChannel -> logMessage.addInlineField("Channel", serverTextChannel.getMentionTag()));
+                logMessage.addField("Content", event.getMessageContent());
+                if (event.getMessageAttachments().size() > 0) {
+                    logMessage.addInlineField("Attachments", String.valueOf(event.getMessageAttachments().size()));
+                }
+                logMessage.addField("Timestamp", ClipBoard.getCurrentTimeStamp());
+
+                channel.getChannel().sendMessage(logMessage);
+
+
+            });
+        });
     }
 
     private EmbedBuilder getLogMessage(User author, String description, String url) {
