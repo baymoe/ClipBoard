@@ -99,6 +99,6 @@ public class ClipBoard {
      * @return Formatted timestamp of when the method was called
      */
     public static String getCurrentTimeStamp() {
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss UTC").format(Instant.now());
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss 'UTC'").format(Date.from(Instant.now()));
     }
 }
