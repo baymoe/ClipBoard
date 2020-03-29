@@ -37,7 +37,7 @@ public class ClipChannel {
             ResultSet r = s.executeQuery();
             List<LogType> logTypes = new ArrayList<>();
             while (r.next()) {
-                logTypes.add(LogType.getLogTypeFromId(r.getInt(1)));
+                logTypes.add(LogType.valueOf(r.getString(1)));
             }
             return logTypes;
         }
@@ -46,7 +46,7 @@ public class ClipChannel {
     public void addLogger(final LogType logType) throws SQLException {
         try (final PreparedStatement s = server.getClip().getDatabase().prepareStatement(
                 "INSERT INTO `log_channels` (`server_id`, `channel_id`, `log_type`) VALUES (?, ?, ?)",
-                server.getId(), getId(), logType.getId())) {
+                server.getId(), getId(), logType.name())) {
             s.execute();
         }
     }
@@ -54,7 +54,7 @@ public class ClipChannel {
     public void removeLogger(final LogType logType) throws SQLException {
         try (final PreparedStatement s = server.getClip().getDatabase().prepareStatement(
                 "DELETE FROM `log_channels` WHERE `server_id`=? AND `channel_id`=? AND `log_type`=?",
-                server.getId(), getId(), logType.getId())) {
+                server.getId(), getId(), logType.name())) {
             s.execute();
         }
     }

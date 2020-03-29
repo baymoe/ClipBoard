@@ -212,10 +212,10 @@ public class ClipLoggerMessage implements
                 .setFooter("Powered by ClipBoard", clip.getDiscord().getYourself().getAvatar());
     }
 
-    private Stream<ClipChannel> getMessagLogChannels(ClipServer server) {
+    private Stream<ClipChannel> getMessagLogChannels(ClipServer server, LogType logType) {
         return server.getClipChannels().stream().filter(channel -> {
             try {
-                return channel.getLoggers().contains(LogType.MESSAGE);
+                return channel.getLoggers().contains(logType);
             } catch (SQLException e) {
                 clip.getLogger().exception(clip, e, server);
                 return false;

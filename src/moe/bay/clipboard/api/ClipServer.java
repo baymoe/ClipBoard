@@ -81,7 +81,7 @@ public class ClipServer {
     public void addLogger(final LogType logType, ClipChannel channel) throws SQLException {
         try (final PreparedStatement s = getClip().getDatabase().prepareStatement(
                 "INSERT INTO `log_channels` (`server_id`, `channel_id`, `log_type`) VALUES (?, ?, ?)",
-                server.getId(), channel.getId(), logType.getId())) {
+                server.getId(), channel.getId(), logType.name())) {
             s.execute();
         }
     }
@@ -89,7 +89,7 @@ public class ClipServer {
     public void removeLogger(final LogType logType, ClipChannel channel) throws SQLException {
         try (final PreparedStatement s = getClip().getDatabase().prepareStatement(
                 "DELETE FROM `log_channels` WHERE `server_id`=? AND `channel_id`=? AND `log_type`=?",
-                server.getId(), getId(), logType.getId())) {
+                server.getId(), getId(), logType.name())) {
             s.execute();
         }
     }
